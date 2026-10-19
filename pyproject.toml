@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atera-triage-mcp"
+version = "0.1.0"
+description = "An MCP server that helps AI agents triage an Atera help desk: ranked queue, site health, alerts and a morning brief, with privacy and safety built in."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Michael Riveira" }]
+requires-python = ">=3.11"
+dependencies = ["mcp>=2.2,<3"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[project.scripts]
+atera-triage-mcp = "atera_triage.server:main"
+
+[tool.setuptools]
+packages = ["atera_triage"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
