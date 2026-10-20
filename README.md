@@ -10,6 +10,8 @@ ranked to-do list for an IT team. It works with Claude Desktop, Claude Code and 
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+![Demo: morning brief, a redacted ticket and site health, using the built-in fictional demo data](docs/demo.gif)
+
 ## Why another Atera MCP server?
 
 Other Atera MCP servers expose the API one endpoint at a time. That lets an AI *read* your help desk,
