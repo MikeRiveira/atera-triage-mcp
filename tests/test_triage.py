@@ -103,3 +103,18 @@ def test_brief_on_demo_data():
     assert b["tickets"]["top"][0]["ticket_id"] == 2043
     assert b["devices"] == {"total": 302, "offline": 5, "worst_site": "Maplewood Kia"}
     assert b["alerts"] == {"critical": 1, "warning": 2}
+
+
+def test_workload_flags_overload_and_lists_unassigned():
+    def t(tid, tech, created=5):
+        return {"TicketID": tid, "TicketTitle": f"T{tid}", "TicketStatus": "Open", "TicketPriority": "Medium",
+                "TechnicianFullName": tech, "TicketCreatedDate": (NOW - dt.timedelta(hours=created)).isoformat()}
+    tickets = [t(1, "Ana", 50), t(2, "Ana"), t(3, "Ana"), t(4, "Ana"), t(5, "Ben"), t(6, None),
+               t(7, "Ben") | {"TicketStatus": "Closed"}]
+    w = triage.workload(tickets, NOW)
+    ana, ben = w["technicians"]
+    assert (ana["technician"], ana["open"], ana["overloaded"]) == ("Ana", 4, True)
+    assert ana["oldest"]["ticket_id"] == 1 and ana["oldest"]["age"] == "2 days"
+    assert (ben["open"], ben["overloaded"]) == (1, False)
+    assert w["team_average_open"] == 2.5
+    assert w["unassigned"]["count"] == 1
