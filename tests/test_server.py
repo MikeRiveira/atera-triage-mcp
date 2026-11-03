@@ -90,3 +90,15 @@ def test_get_ticket_falls_back_when_comments_unavailable():
     demo.ticket_comments = no_comments
     t = call(build_server(client=demo, now=lambda: NOW), "get_ticket", {"ticket_id": 2043})
     assert t["comments"][0]["text"] == "<ticket_text>Call me at [phone removed]</ticket_text>"
+
+
+def test_every_tool_and_parameter_is_described():
+    for tool in asyncio.run(make(allow_writes=True)[0].list_tools()):
+        assert tool.title and len(tool.description) > 80, tool.name
+        for name, prop in tool.input_schema.get("properties", {}).items():
+            assert prop.get("description"), f"{tool.name}.{name}"
+
+
+def test_limits_are_validated():
+    with pytest.raises(ToolError):
+        asyncio.run(make()[0].call_tool("triage_queue", {"limit": 0}))
