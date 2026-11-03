@@ -170,6 +170,37 @@ def open_alerts(alerts: list[dict[str, Any]], severity: str | None = None) -> li
     } for a in rows]
 
 
+def workload(tickets: list[dict[str, Any]], now: dt.datetime) -> dict[str, Any]:
+    """Open tickets per technician: how many, how many wait on IT or are critical, and the
+    oldest one each person has. A technician carrying 1.5x the team average (and at least 3)
+    is flagged as overloaded. Unassigned tickets are listed separately."""
+    by_id = {int(t.get("TicketID", 0)): t for t in tickets}
+    techs: dict[str, dict[str, Any]] = {}
+    unassigned = []
+    for r in rank_queue(tickets, now):
+        name = str(by_id[r.ticket_id].get("TechnicianFullName") or "").strip()
+        age = hours_since(by_id[r.ticket_id].get("TicketCreatedDate"), now) or 0
+        if not name:
+            unassigned.append({"ticket_id": r.ticket_id, "title": r.title, "site": r.site, "level": r.level})
+            continue
+        tech = techs.setdefault(name, {"technician": name, "open": 0, "waiting_on_it": 0, "critical": 0,
+                                       "oldest": None, "_age": -1.0})
+        tech["open"] += 1
+        tech["waiting_on_it"] += r.level != "waiting_on_user"
+        tech["critical"] += r.level == "critical"
+        if age > tech["_age"]:
+            tech["_age"] = age
+            tech["oldest"] = {"ticket_id": r.ticket_id, "title": r.title, "age": _ago(age)}
+    rows = list(techs.values())
+    average = sum(t["open"] for t in rows) / len(rows) if rows else 0
+    for t in rows:
+        del t["_age"]
+        t["overloaded"] = t["open"] >= 3 and t["open"] >= 1.5 * average
+    rows.sort(key=lambda t: (-t["waiting_on_it"], -t["critical"], -t["open"], t["technician"]))
+    return {"team_average_open": round(average, 1), "technicians": rows,
+            "unassigned": {"count": len(unassigned), "tickets": unassigned}}
+
+
 def brief(tickets: list[dict[str, Any]], agents: list[dict[str, Any]],
           alerts: list[dict[str, Any]], now: dt.datetime) -> dict[str, Any]:
     """A morning summary across the queue, devices and alerts."""

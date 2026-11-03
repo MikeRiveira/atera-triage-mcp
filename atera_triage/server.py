@@ -34,7 +34,8 @@ SiteFilter = Annotated[str | None, Field(
 TicketId = Annotated[int, Field(ge=1, description="The Atera ticket number, e.g. 2043.")]
 
 INSTRUCTIONS = f"""Help an IT manager triage their Atera help desk.
-Start with morning_brief or triage_queue, then drill into get_ticket, site_health or open_alerts.
+Start with morning_brief or triage_queue, then drill into get_ticket, site_health, open_alerts
+or technician_workload.
 Personal contact details are removed before you see them; don't ask for them.
 {UNTRUSTED_NOTE}
 Never change a ticket unless the user asked for that specific change."""
@@ -173,6 +174,23 @@ def build_server(client: Any = None, allow_writes: bool | None = None, now=None)
         id, severity, title, machine, site and creation time. Returns the total count and the list."""
         rows = triage.open_alerts(client.alerts(), severity)
         return {"count": len(rows), "alerts": rows[: max(1, min(limit, 100))]}
+
+    @server.tool(title="Technician workload", annotations=READ_ONLY)
+    @_friendly
+    def technician_workload() -> dict:
+        """Open tickets per technician, for "who's overloaded?", "who should take this?" or a
+        team check-in. For each assigned technician: open tickets, how many are waiting on IT,
+        how many are critical, their oldest open ticket, and an overloaded flag (at least 3 open
+        and 1.5x the team average). Busiest first. Unassigned open tickets are listed separately
+        with their urgency level, so they can be handed out."""
+        result = triage.workload(client.tickets(), clock())
+        for tech in result["technicians"]:
+            if tech["oldest"]:
+                tech["oldest"]["title"] = fence(tech["oldest"]["title"])
+        for ticket in result["unassigned"]["tickets"]:
+            ticket["title"] = fence(ticket["title"])
+        result["note"] = UNTRUSTED_NOTE
+        return result
 
     if allow_writes:
         @server.tool(title="Change ticket status", annotations=WRITE)

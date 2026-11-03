@@ -38,6 +38,7 @@ This server is built for **triage**, the first job of every help desk morning:
 | `get_ticket` | One ticket's details and conversation, redacted and fenced |
 | `site_health` | Devices per site: how many are online, which are offline and since when |
 | `open_alerts` | Active alerts, most severe and newest first |
+| `technician_workload` | Open tickets per technician, their oldest ticket, who's overloaded, and what's unassigned |
 | `set_ticket_status` | Change a ticket's status. **Only exists when writes are enabled** |
 
 ### How tickets are ranked
@@ -119,6 +120,7 @@ appears in errors or tool output. An Atera API key has full account access, so k
 - "Which store has the most machines offline right now?"
 - "Summarize ticket 2043 and draft a reply I can send."
 - "Are there any critical alerts?"
+- "Who on the team is overloaded, and who should take the unassigned ticket?"
 - With writes on: "Mark ticket 2045 as pending."
 
 ## Safety

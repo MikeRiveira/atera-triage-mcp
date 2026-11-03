@@ -28,7 +28,8 @@ def tool_names(server):
 
 def test_read_only_by_default():
     server, _ = make()
-    assert tool_names(server) == {"morning_brief", "triage_queue", "get_ticket", "site_health", "open_alerts"}
+    assert tool_names(server) == {"morning_brief", "triage_queue", "get_ticket", "site_health", "open_alerts",
+                                 "technician_workload"}
     assert all(t.annotations.read_only_hint for t in asyncio.run(server.list_tools()))
 
 
@@ -102,3 +103,11 @@ def test_every_tool_and_parameter_is_described():
 def test_limits_are_validated():
     with pytest.raises(ToolError):
         asyncio.run(make()[0].call_tool("triage_queue", {"limit": 0}))
+
+
+def test_technician_workload():
+    w = call(make()[0], "technician_workload")
+    busiest = w["technicians"][0]
+    assert busiest["technician"] == "Jordan Reyes" and busiest["overloaded"]
+    assert busiest["oldest"]["title"].startswith("<ticket_text>")
+    assert [t["ticket_id"] for t in w["unassigned"]["tickets"]] == [2043]
