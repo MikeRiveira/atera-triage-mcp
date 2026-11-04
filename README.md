@@ -10,6 +10,8 @@ ranked to-do list for an IT team. It works with Claude Desktop, Claude Code and 
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+[![Atera Triage MCP server on Glama](https://glama.ai/mcp/servers/MikeRiveira/atera-triage-mcp/badges/card.svg)](https://glama.ai/mcp/servers/MikeRiveira/atera-triage-mcp)
+
 ![Demo: morning brief, a redacted ticket and site health, using the built-in fictional demo data](docs/demo.gif)
 
 ## Why another Atera MCP server?
